@@ -111,4 +111,28 @@ events_joined <- events_joined %>%
     everything()
   )
 
-write.csv(events_joined,'all_locations.csv', row.names = FALSE)
+# -------------------------------------------------------------------
+# remove outliers
+# -------------------------------------------------------------------
+
+# calculate 5-point rolling averages and sd's for latitude and longitude
+library(zoo)
+events_joined <- events_joined %>%
+  dplyr::group_by(individual_local_identifier) %>%
+  dplyr::arrange(individual_local_identifier,timestamp) %>%
+  dplyr::mutate(lat.mean.5d = zoo::rollapply(Y, FUN = mean, width=5, fill = NA),
+                lat.sd.5d = zoo::rollapply(Y, FUN = sd, width=5, fill = NA),
+                lon.mean.5d = zoo::rollapply(X, FUN = mean, width=5, fill = NA),
+                lon.sd.5d = zoo::rollapply(X, FUN = sd, width=5, fill = NA)) %>%
+  dplyr::ungroup()
+
+# calculate DEV of each point to rolling average, square this TO SQDEV, and divide by SD
+events_joined$lat.dev.to.roll <- abs(events_joined$Y - events_joined$lat.mean.5d)^2/events_joined$lat.sd.5d
+events_joined$lon.dev.to.roll <- abs(events_joined$X - events_joined$lon.mean.5d)^2/events_joined$lon.sd.5d
+
+# flag outliers if SQDEV of latitude or longitude > 10
+events_joined$outlier <- ifelse(events_joined$lat.dev.to.roll > 10 | events_joined$lon.dev.to.roll > 10,'outlier','normal')
+events_joined_outliers_removed <- subset(events_joined, outlier == "normal")
+
+# export
+write.csv(events_joined_outliers_removed,'all_locations.csv', row.names = FALSE)
