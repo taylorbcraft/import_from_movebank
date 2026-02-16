@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+all_locations.csv
+
+# data outputs
+all_locations.csv
+*.csv
