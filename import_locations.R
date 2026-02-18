@@ -112,6 +112,15 @@ events_joined <- events_joined %>%
   )
 
 # -------------------------------------------------------------------
+# remove bar-tailed/islandica
+# -------------------------------------------------------------------
+
+events_joined <- events_joined %>%
+  filter(taxon_detail != "islandica" &
+           taxon_detail != "Limosa lapponica" &
+           taxon_detail != "Limosa limosa islandica")
+
+# -------------------------------------------------------------------
 # remove outliers
 # -------------------------------------------------------------------
 
